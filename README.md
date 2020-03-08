@@ -56,3 +56,4 @@ Will display the default info.
   
   
 ![Image of liri-log-activity](https://github.com/rockstar67/liri-node-app/.assets/images/liri_image.png)
+
