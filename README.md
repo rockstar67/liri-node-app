@@ -53,3 +53,7 @@ Will display the default info.
   *  Spotify API
   *  Bands In Town API
   *  OMDb API
+  
+  
+![liri_image](https://user-images.githubusercontent.com/56149337/76172768-4fac6000-6156-11ea-9d79-12a08895e0d2.png)
+
