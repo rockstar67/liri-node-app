@@ -53,3 +53,5 @@ Will display the default info.
   *  Spotify API
   *  Bands In Town API
   *  OMDb API
+  
+  ![Image of liri_node_activity](https://github.com/rockstar67/.assets/images/liri.image.png)
