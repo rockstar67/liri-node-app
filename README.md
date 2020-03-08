@@ -54,4 +54,5 @@ Will display the default info.
   *  Bands In Town API
   *  OMDb API
   
-  ![Image of liri_node_activity]((https://octodex.github.com/images/liri_image.png)
+  
+![Image of liri-log-activity](https://github.com/rockstar67/./images/liri_image.png)
