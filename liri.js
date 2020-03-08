@@ -1,126 +1,135 @@
-// All required node modules
+//All required node modules
 require("dotenv").config();
-var request = require('request');
-var fs = require("fs");
-var keys = require("./keys.js");
-var Spotify = require('node-spotify-api');
-var spotify = new Spotify(keys.spotify);
-var moment = require('moment');
+var keys = require("./keys")
+var request = require("request")
+var Spotify = require("node-spotify-api")
+var dateFormat = require("dateFormat")
+var fs = require("fs")
 
-// Node processes
-var command = process.argv[2];
-var search = process.argv[3];
-var query = process.argv;
-
-// Search Helper function
-function searchHelper() {
-    var search = "";
-    for (var i = 3; i < query.length; i++) {
-        if (i > 3 && i < query.length) {
-            search = search + "+" + query[i];
-        } else {
-            search += query[i];
-        }
-    }
-}
-
-
-// Bands In Town search
-function concertThis(search) {
-
-    searchHelper();
-
-    request("https://rest.bandsintown.com/artists/" + search + "/events?app_id=codingbootcamp", function(error, response, body) {
-        if (error) {
-            return console.log('Error occurred: ' + error);
-        }
-        var data = JSON.parse(body);
-        for (i = 0; i < data.length; i++){
-        console.log("Venue: " + data[i].venue.name);
-        var date = data[i].datetime;
-        date = moment(date).format("MM/DD/YYYY");
-        console.log("Date: " + date)
-        }
-    });
-}
-
-// Spotify search
-function spotifyThisSong(search) {
-    if (search === undefined) {
-        search = "The Sign Ace Of Base";
-    }
-
-    searchHelper();
-
-    spotify.search({ type: 'track', query: search, limit: 1}, function(error, data) {
-        if (error) {
-            return console.log('Error occurred: ' + error);
-        }
-        console.log("Artists: " + track.artists[0].name);
-        console.log("Song Name: " + data.tracks.items[0].name);
-        data.tracks.items.forEach(function (track) {  
-        console.log("Song Link: " + track.album.href);
-        console.log("Album: " + track.album.name);
-        });
-    });
-}
-
-
-// OMDB search
-function movieThis(search) {
-    if (search === undefined) {
-        search = "Mr. Nobody";
-    }
-
-    searchHelper();
-
-    request("https://www.omdbapi.com/?t=" + search + "&y=&plot=short&apikey=trilogy", function(error, response, body) {
-        if (error) {
-            return console.log('Error occurred: ' + error);
-        }
-        var data = JSON.parse(body);
-        console.log("Title: " + data.Title);
-        console.log("Year: " + data.Year);
-        console.log("Rated: " + data.Rated);
-        if (data.Ratings[1] === undefined) {
-            console.log("Rotten Tomatoes: N/A");
-        } else {
-            console.log("Rotten Tomatoes: " + data.Ratings[1].Value);
-        }
-        console.log("Country: " + data.Country);
-        console.log("Language: " + data.Language);
-        console.log("Plot: " + data.Plot);
-        console.log("Actors: " + data.Actors);
+//  Bands in Town 
+var concertThis = function (artist) {
+    var region = ""
+    var queryUrl = "https://rest.bandsintown.com/artists/" + artist.replace(" ", "+") + "/events?app_id=codingbootcamp"
+    
+    request(queryUrl, function (err, response, body) {
         
-    });
-}
+        if (!err && response.statusCode === 200) {
+            
+            var concertInfo = JSON.parse(body)
 
-// Do What It Says function
-function doThis(){
-    fs.readFile("random.txt", "utf8", function(error, data) {
-        if (error) {
-            return console.log('Error occurred: ' + error);
+            outputData(artist + " concert information:")
+
+            for (i = 0; i < concertInfo.length; i++) {
+
+                region = concertInfo[i].venue.region
+                
+                if (region === "") {
+                    region = concertInfo[i].venue.country
+                }
+
+               
+                outputData("Venue: " + concertInfo[i].venue.name)
+                outputData("Location: " + concertInfo[i].venue.city + ", " + region);
+                outputData("Date: " + dateFormat(concertInfo[i].datetime, "mm/dd/yyyy"))
+            }
         }
-        var data = data.split(",");
-        spotifyThisSong(data[1]); 
-    });
+    })
 }
 
-// Switch Commands
-switch (command) {
-    case "spotify-this-song":
-    spotifyThisSong(search);
-    break;
-    case  "concert-this":
-    concertThis(search);
-    break;
-    case  "movie-this":
-    movieThis(search);
-    break;
-    case "do-what-it-says":
-    doThis();
-    break;
-    default:
-    console.log("Please enter a valid command.");
+// Spotify
+var spotifyThisSong = function (song) {
+    if (!song) {
+        song = "The Sign Ace of Base"
+    }
+
+    var spotify = new Spotify(keys.spotify);
+
+    spotify.search({ type: "track", query: song, limit: 1 }, function (err, data) {
+        if (err) {
+            return console.log(err)
+        }
+
+        var songInfo = data.tracks.items[0]
+        outputData(songInfo.artists[0].name)
+        outputData(songInfo.name)
+        outputData(songInfo.album.name)
+        outputData(songInfo.preview_url)
+    })
 }
+
+// OMDB
+var movieThis = function (movie) {
+    if (!movie) {
+        movie = "Mr.+Nobody"
+    }
+
+    var queryUrl = "http://www.omdbapi.com/?t=" + movie + "&y=&plot=short&apikey=trilogy";
+    
+    request(queryUrl, function (err, response, body) {
+        
+        if (!err && response.statusCode === 200) {
+            
+            var movieInfo = JSON.parse(body)
+
+            outputData("Title: " + movieInfo.Title)
+            outputData("Release year: " + movieInfo.Year)
+            outputData("IMDB Rating: " + movieInfo.imdbRating)
+            outputData("Rotten Tomatoes Rating: " + movieInfo.Ratings[1].Value)
+            outputData("Country: " + movieInfo.Country)
+            outputData("Language: " + movieInfo.Language)
+            outputData("Plot: " + movieInfo.Plot)
+            outputData("Actors: " + movieInfo.Actors)
+        }
+    })
+}
+
+// Do What It Says
+var doWhatItSays = function () {
+
+    // read from file
+    fs.readFile("random.txt", "utf8", function (err, data) {
+        if (err) {
+            return console.log(err)
+        }
+
+        var dataArr = data.split(",")
+
+        runAction(dataArr[0], dataArr[1])
+    });
+}
+// This function will handle outputting to the console and writing to log file
+var outputData = function(data) {
+    console.log(data)
+
+    fs.appendFile("log.txt", "\r\n" + data, function (err){
+        if(err){
+            return console.log(err)
+        } 
+    })
+}
+
+
+var runAction = function (func, parm) {
+    switch (func) {
+        case "concert-this":
+            concertThis(parm)
+            break
+        case "spotify-this-song":
+            spotifyThisSong(parm)
+            break
+        case "movie-this":
+            movieThis(parm)
+            break
+        case "do-what-it-says":
+            doWhatItSays()
+            break
+        default:
+            outputData("That is not a command that I recognize, please try again.")
+    }
+}
+
+runAction(process.argv[2], process.argv[3])
+
+
+
 
