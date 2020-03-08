@@ -55,4 +55,4 @@ Will display the default info.
   *  OMDb API
   
   
-![Image of liri-log-activity](https://github.com/rockstar67/.assets/images/liri_image.png)
+![Image of liri-log-activity](https://github.com/rockstar67/liri-node-app/.assets/images/liri_image.png)
